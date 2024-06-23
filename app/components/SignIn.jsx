@@ -1,6 +1,6 @@
 "use client";
 
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, signInWithRedirect } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import Image from "next/image";
 import GoogleLogo from "../../public/google.svg";
@@ -8,7 +8,7 @@ import GoogleLogo from "../../public/google.svg";
 export default function SignIn() {
   const signInWithGoogle = () => {
     const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider);
+    signInWithRedirect(auth, provider);
   };
 
   return (

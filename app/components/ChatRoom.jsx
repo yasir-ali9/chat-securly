@@ -93,6 +93,10 @@ export default function ChatRoom() {
   return (
     <>
       <main className="main">
+        <div className="msg">
+          The messages are end-to-end encrypted using RSA algorithm.
+        </div>
+
         {messages &&
           messages.map((msg) => (
             <ChatMessage
