@@ -1,6 +1,15 @@
 ## RSA based end-to-end encrypted chat room web app.
 
-First, run the development server:
+
+You must install the following dependencies to run project:
+
+```bash
+npm install firebase 
+npm install react-firebase-hooks
+npm install dotenv
+```
+
+Run the following commands to view the results on localhost:
 
 ```bash
 npm run dev
@@ -8,8 +17,4 @@ npm run dev
 yarn dev
 # or
 pnpm dev
-# or
-bun dev
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
