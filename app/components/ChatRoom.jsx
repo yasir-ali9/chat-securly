@@ -15,7 +15,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { auth, firestore } from "../lib/firebase";
-import { generateRSAKeys, rsaEncrypt } from "../lib/rsaUtils";
+import { generateRSAKeys, rsaEncrypt } from "../lib/rsa";
 import ChatMessage from "./ChatMessage";
 
 export default function ChatRoom() {
@@ -92,7 +92,7 @@ export default function ChatRoom() {
 
   return (
     <>
-      <main>
+      <main className="main">
         {messages &&
           messages.map((msg) => (
             <ChatMessage

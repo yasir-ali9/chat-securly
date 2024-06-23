@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { auth } from "../lib/firebase";
-import { rsaDecrypt } from "../lib/rsaUtils";
+import { rsaDecrypt } from "../lib/rsa";
 import Image from "next/image";
 
 export default function ChatMessage(props) {
