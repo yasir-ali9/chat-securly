@@ -1,5 +1,4 @@
-"use client";
-
+// app/components/ChatRoom.jsx
 import { useRef, useState, useEffect } from "react";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 import {
@@ -13,9 +12,10 @@ import {
   addDoc,
   serverTimestamp,
   getDocs,
+  updateDoc,
 } from "firebase/firestore";
 import { auth, firestore } from "../lib/firebase";
-import { generateRSAKeys, rsaEncrypt } from "../lib/rsa";
+import { getOrGenerateRSAKeys, rsaEncrypt } from "../lib/rsa";
 import ChatMessage from "./ChatMessage";
 
 export default function ChatRoom() {
@@ -27,6 +27,7 @@ export default function ChatRoom() {
   const [messages] = useCollectionData(q, { idField: "id" });
   const [formValue, setFormValue] = useState("");
   const [keys, setKeys] = useState(null);
+  const [registrationTimestamp, setRegistrationTimestamp] = useState(null);
 
   useEffect(() => {
     const fetchOrGenerateKeys = async () => {
@@ -34,24 +35,26 @@ export default function ChatRoom() {
       const userDoc = doc(usersRef, uid);
       const userSnap = await getDoc(userDoc);
 
-      if (userSnap.exists() && userSnap.data().privateKey) {
-        // If keys exist, use them
-        setKeys({
-          publicKey: userSnap.data().publicKey,
-          privateKey: userSnap.data().privateKey,
-        });
-      } else {
-        // If keys don't exist, generate new ones
-        const newKeys = generateRSAKeys();
-        setKeys(newKeys);
+      let { publicKey, privateKey, registrationTimestamp } =
+        getOrGenerateRSAKeys(uid);
 
-        // Store both public and private keys
+      if (!userSnap.exists()) {
+        // User is new
         await setDoc(userDoc, {
           uid,
-          publicKey: newKeys.publicKey,
-          privateKey: newKeys.privateKey,
+          publicKey,
+          registrationTimestamp,
+        });
+      } else {
+        // User exists, update their public key and registration timestamp
+        await updateDoc(userDoc, {
+          publicKey,
+          registrationTimestamp,
         });
       }
+
+      setKeys({ publicKey, privateKey });
+      setRegistrationTimestamp(registrationTimestamp);
     };
 
     fetchOrGenerateKeys();
@@ -103,6 +106,7 @@ export default function ChatRoom() {
               key={msg.id}
               message={msg}
               privateKey={keys?.privateKey}
+              registrationTimestamp={registrationTimestamp}
             />
           ))}
         <span ref={dummy}></span>

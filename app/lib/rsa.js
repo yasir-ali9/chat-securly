@@ -1,3 +1,5 @@
+// app/lib/rsa.js
+
 // Generate a random prime number
 export function generatePrime(min, max) {
   const sieve = Array(max + 1).fill(true);
@@ -50,6 +52,7 @@ export function generateRSAKeys() {
   while ((d * e) % phi !== 1) {
     d++;
   }
+
   return { publicKey: { e, n }, privateKey: { d, n } };
 }
 
@@ -67,4 +70,50 @@ export function rsaDecrypt(encryptedMessage, privateKey) {
       String.fromCharCode(modPow(char, privateKey.d, privateKey.n))
     )
     .join("");
+}
+
+// Store keys and registration timestamp in localStorage
+export function storeKeys(userId, publicKey, privateKey) {
+  const registrationTimestamp = Date.now();
+  const keysData = JSON.stringify({
+    publicKey,
+    privateKey,
+    registrationTimestamp,
+  });
+  localStorage.setItem(`rsaKeys_${userId}`, keysData);
+  return registrationTimestamp;
+}
+
+// Retrieve keys and registration timestamp from localStorage
+export function getKeys(userId) {
+  const keysData = localStorage.getItem(`rsaKeys_${userId}`);
+  return keysData ? JSON.parse(keysData) : null;
+}
+
+// Clear all user data from localStorage
+export function clearAllUserData(userId) {
+  localStorage.removeItem(`rsaKeys_${userId}`);
+}
+
+// Generate or retrieve RSA keys
+export function getOrGenerateRSAKeys(userId) {
+  const storedKeys = getKeys(userId);
+
+  if (
+    storedKeys &&
+    storedKeys.publicKey &&
+    storedKeys.privateKey &&
+    storedKeys.registrationTimestamp
+  ) {
+    return storedKeys;
+  } else {
+    // Generate new keys
+    const keys = generateRSAKeys();
+    const registrationTimestamp = storeKeys(
+      userId,
+      keys.publicKey,
+      keys.privateKey
+    );
+    return { ...keys, registrationTimestamp };
+  }
 }

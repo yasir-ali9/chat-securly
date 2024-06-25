@@ -1,3 +1,4 @@
+// app/components/SignIn.jsx
 "use client";
 
 import { GoogleAuthProvider, signInWithRedirect } from "firebase/auth";
@@ -18,7 +19,7 @@ export default function SignIn() {
         Sign in with Google
       </button>
       <p className="copy-text">
-        This app is built by Yasir Ali @All rights reserved!
+        This app is built by Yasir Ali @ All rights reserved!
       </p>
     </div>
   );
