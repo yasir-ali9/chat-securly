@@ -1,5 +1,6 @@
 // app/components/ChatRoom.jsx
-import { useRef, useState, useEffect } from "react";
+
+import { useRef, useState, useEffect, useCallback } from "react";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 import {
   doc,
@@ -21,7 +22,6 @@ import ChatMessage from "./ChatMessage";
 export default function ChatRoom() {
   const dummy = useRef();
   const messagesRef = collection(firestore, "messages");
-  const usersRef = collection(firestore, "users");
   const q = query(messagesRef, orderBy("createdAt"), limit(25));
 
   const [messages] = useCollectionData(q, { idField: "id" });
@@ -29,36 +29,37 @@ export default function ChatRoom() {
   const [keys, setKeys] = useState(null);
   const [registrationTimestamp, setRegistrationTimestamp] = useState(null);
 
-  useEffect(() => {
-    const fetchOrGenerateKeys = async () => {
-      const { uid } = auth.currentUser;
-      const userDoc = doc(usersRef, uid);
-      const userSnap = await getDoc(userDoc);
+  const fetchOrGenerateKeys = useCallback(async () => {
+    const usersRef = collection(firestore, "users");
+    const { uid } = auth.currentUser;
+    const userDoc = doc(usersRef, uid);
+    const userSnap = await getDoc(userDoc);
 
-      let { publicKey, privateKey, registrationTimestamp } =
-        getOrGenerateRSAKeys(uid);
+    let { publicKey, privateKey, registrationTimestamp } =
+      getOrGenerateRSAKeys(uid);
 
-      if (!userSnap.exists()) {
-        // User is new
-        await setDoc(userDoc, {
-          uid,
-          publicKey,
-          registrationTimestamp,
-        });
-      } else {
-        // User exists, update their public key and registration timestamp
-        await updateDoc(userDoc, {
-          publicKey,
-          registrationTimestamp,
-        });
-      }
+    if (!userSnap.exists()) {
+      // User is new
+      await setDoc(userDoc, {
+        uid,
+        publicKey,
+        registrationTimestamp,
+      });
+    } else {
+      // User exists, update their public key and registration timestamp
+      await updateDoc(userDoc, {
+        publicKey,
+        registrationTimestamp,
+      });
+    }
 
-      setKeys({ publicKey, privateKey });
-      setRegistrationTimestamp(registrationTimestamp);
-    };
-
-    fetchOrGenerateKeys();
+    setKeys({ publicKey, privateKey });
+    setRegistrationTimestamp(registrationTimestamp);
   }, []);
+
+  useEffect(() => {
+    fetchOrGenerateKeys();
+  }, [fetchOrGenerateKeys]);
 
   const sendMessage = async (e) => {
     e.preventDefault();
@@ -66,6 +67,7 @@ export default function ChatRoom() {
     const { uid, photoURL } = auth.currentUser;
 
     if (keys) {
+      const usersRef = collection(firestore, "users");
       // Fetch all users' public keys
       const usersSnapshot = await getDocs(usersRef);
       const users = usersSnapshot.docs.map((doc) => ({
